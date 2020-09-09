@@ -19,11 +19,11 @@ namespace AnalyzerDocumenter.Writers
 
         protected StreamWriter FileWriter { get; set; }
 
-        protected internal virtual Task WriteStartAsync()
+        protected internal virtual async Task WriteStartAsync()
         {
             this.FileWriter = new StreamWriter(this.FilePath, false, Encoding.UTF8);
 
-            return Task.CompletedTask;
+            await this.FileWriter.FlushAsync();
         }
 
         protected internal virtual Task WriteStartAnalyzerAsync(AssemblyDescriptor assemblyDescriptor)
