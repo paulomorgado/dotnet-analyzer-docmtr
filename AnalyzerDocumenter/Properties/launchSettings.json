@@ -2,7 +2,7 @@
   "profiles": {
     "AnalyzerDocumenter": {
       "commandName": "Project",
-      "commandLineArgs": "--assemblies C:\\Users\\pamorgad\\.nuget\\packages\\Microsoft.CodeQuality.Analyzers\\3.3.0\\**\\*.dll C:\\Users\\pamorgad\\.nuget\\packages\\Analyzers\\Microsoft.NetCore.Analyzers\\3.3.0\\**\\*.dll C:\\Users\\pamorgad\\.nuget\\packages\\Microsoft.CodeAnalysis.VersionCheckAnalyzer\\3.3.0\\**\\*.dll C:\\Users\\pamorgad\\.nuget\\packages\\Microsoft.NetCore.Analyzers\\3.3.0\\**\\*.dll C:\\Users\\pamorgad\\.nuget\\packages\\Microsoft.NetFramework.Analyzers\\3.3.0\\**\\*.dll --generate All --name Microsoft.CodeAnalysis.FxCopAnalyzers --tags Dataflow PortedFromFxCop --documentation-directory C:\\Temp\\Microsoft.CodeAnalysis.FxCopAnalyzers\\generated\\documentation --build-directory C:\\Temp\\Microsoft.CodeAnalysis.FxCopAnalyzers\\generated\\build --checks-directory C:\\Temp\\Microsoft.CodeAnalysis.FxCopAnalyzers\\generated\\checks --sarif-directory C:\\Temp\\Microsoft.CodeAnalysis.FxCopAnalyzers\\generated\\documentation --rulesets-directory C:\\Temp\\Microsoft.CodeAnalysis.FxCopAnalyzers\\generated\\rulesets --editorconfig-directory C:\\Temp\\Microsoft.CodeAnalysis.FxCopAnalyzers\\generated\\editorconfig"
+      "commandLineArgs": "--assemblies C:\\Temp\\ClrHeapAllocationAnalyzer.3.0.0\\analyzers\\dotnet\\cs\\ClrHeapAllocationAnalyzer.dll --generate Checks"
     }
   }
 }

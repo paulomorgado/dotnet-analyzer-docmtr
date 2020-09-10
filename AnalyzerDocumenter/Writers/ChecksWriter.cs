@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
 using System.Net.Http;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace AnalyzerDocumenter.Writers
@@ -32,39 +29,58 @@ namespace AnalyzerDocumenter.Writers
         {
             string? error = null;
 
-            if (!Uri.TryCreate(rule.Diagnostic.HelpLinkUri, UriKind.Absolute, out var uri))
+            if (string.IsNullOrEmpty(rule.Diagnostic.HelpLinkUri))
+            {
+                error = "Null or empty help link URI.";
+            }
+            else if (!Uri.TryCreate(rule.Diagnostic.HelpLinkUri, UriKind.Absolute, out var uri))
             {
                 error = $"Invalid help link URI: {rule.Diagnostic.HelpLinkUri}";
             }
             else
             {
-                this.httpClient ??= new HttpClient();
+                this.httpClient ??= new HttpClient(new HttpClientHandler { AllowAutoRedirect = false, })
+                {
+                    DefaultRequestHeaders =
+                            {
+                                { "User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4255.0 Safari/537.36 Edg/87.0.634.0" },
+                                { "Accept", "text/html,application/xhtml+xml,application/xml" },
+                                { "Accept-Encoding", "gzip, deflate" },
+                            },
+                };
 
                 try
                 {
-                    using var request = new HttpRequestMessage(HttpMethod.Head, uri);
+                    using var request = new HttpRequestMessage(HttpMethod.Get, uri);
                     using var response = await this.httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
 
-                    if (response.StatusCode != System.Net.HttpStatusCode.OK)
+                    switch (response.StatusCode)
                     {
-                        error = $"Invalid response ({response.StatusCode}) for link URI: {rule.Diagnostic.HelpLinkUri}";
+                        case System.Net.HttpStatusCode.OK:
+                            break;
+                        case System.Net.HttpStatusCode.Moved when response.Headers.Location is Uri location:
+                            error = $"Help link {uri} moved to {location}";
+                            break;
+                        default:
+                            error = $"Invalid response ({((int)(response.StatusCode)).ToString()} - {response.StatusCode}) for help link URI: {rule.Diagnostic.HelpLinkUri}";
+                            break;
                     }
                 }
-                catch
+                catch (Exception ex)
                 {
-                    await this.FileWriter.WriteAsync("|");
-                    await this.FileWriter.WriteAsync(rule.Diagnostic.Id);
-                    await this.FileWriter.WriteAsync("|");
-                    await this.FileWriter.WriteAsync(rule.Diagnostic.Title.ToString());
-                    await this.FileWriter.WriteAsync("|");
-                    await this.FileWriter.WriteAsync(error);
-                    await this.FileWriter.WriteLineAsync("|");
+                    error = ex.Message;
                 }
             }
 
             if (!string.IsNullOrEmpty(error))
             {
-
+                await this.FileWriter.WriteAsync("|");
+                await this.FileWriter.WriteAsync(rule.Diagnostic.Id);
+                await this.FileWriter.WriteAsync("|");
+                await this.FileWriter.WriteAsync(rule.Diagnostic.Title.ToString());
+                await this.FileWriter.WriteAsync("|");
+                await this.FileWriter.WriteAsync(error);
+                await this.FileWriter.WriteLineAsync("|");
             }
         }
 
