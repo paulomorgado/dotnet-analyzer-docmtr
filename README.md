@@ -4,131 +4,133 @@ This is a [dotnet tool](https://docs.microsoft.com/dotnet/core/tools/global-tool
 
 The implementation is based on the [custom tool](https://github.com/dotnet/roslyn-analyzers/tree/master/src/Tools/GenerateDocumentationAndConfigFiles) used by the [roslyn-analyzers](https://github.com/dotnet/roslyn-analyzers/) and can be used on any analyzer or group of analyzers.
 
-```
+```text
 > dotnet analyzer-docmtr --help
 AnalyzerDocumenter:
   Roslyn analyzers documenter
 
 Usage:
-  AnalyzerDocumenter [options]
+  AnalyzerDocumenter [options] [<assemblies>...]
+
+Arguments:
+  <assemblies>    Input assemblies with Roslyn analizers. Accepts globbing patterns.
 
 Options:
-  -a, --assemblies <assemblies> (REQUIRED)                                              The assemblies with Roslyn analizers
-  -n, --name <name>                                                                     The root name of the output assets
-  -g, --generate <All|Checks|Documentation|Editorconfig|MSBuild|None|Rulesets|Sarif>    The output types to generate
-  -dd, --documentation-directory <documentation-directory>                              The analyzer documentation directory [default: C:\Temp\analyzer-docmtr]
-  -sd, --sarif-directory <sarif-directory>                                              The analyzer SARIF directory [default: C:\Temp\analyzer-docmtr]
-  -rd, --rulesets-directory <rulesets-directory>                                        The analyzer rulesets directory [default: C:\Temp\analyzer-docmtr]
-  -ed, --editorconfig-directory <editorconfig-directory>                                The analyzer .editorconfig base directory [default: C:\Temp\analyzer-docmtr]
-  -bd, --build-directory <build-directory>                                              The MSBuild artifacts directory [default: C:\Temp\analyzer-docmtr]
-  -cd, --checks-directory <checks-directory>                                            The checks directory [default: C:\Temp\analyzer-docmtr]
-  -t, --tags <tags>                                                                     The analyzer tags to generate rulesets and .editorconfig files
-  --version                                                                             Show version information
-  -?, -h, --help                                                                        Show help and usage information
+  -n, --name <generate-markdown>     The root name of the output assets
+  -o, --output <output-directory>    The output directory. Defaults to the current directory. [default: C:\Projects\GH\PM\analyzer-docmtr]
+  -s, --sarif                        Generates the analyzer SARIF documentation. The SARIF file will be generated to the documentation subdirectory of the ouput directory.
+  -md, --documentation               Generates the analyzer markdown documentation. The SARIF file will be generated to the documentation subdirectory of the ouput directory.
+  -rs, --rulesets                    Generates the analyzer rulesets files. The markdown file will be generated to the rulesets subdirectory of the ouput directory.
+  -ec, --editorconfig                Generates the analyzer .editorconfig files. The .editorconfig file will be generated to subdirectories of the editorconfig subdirectory of the ouput directory.
+  -mb, --msbuild                     Generates the analyzer MSBuild files. The files will be generated to the build subdirectory of the ouput directory.
+  -ck, --checks                      Generates the analyzer checks file. The Checks.md file will be generated to the output directory.
+  -t, --tags <generate-markdown>     The analyzer tags to generate rulesets and .editorconfig files.
+  --version                          Show version information
+  -?, -h, --help                     Show help and usage information
 ```
 
-## Options
+## Arguments
 
-### -a, --assemblies <assemblies> (REQUIRED)
+### <assemblies> (REQUIRED)
 
 List of assemblies containing analyzers to document.
 
 The set of analizers will documented as a single package. This is useful for meta-packages like [Microsoft.CodeAnalysis.FxCopAnalyzers](https://www.nuget.org/packages/Microsoft.CodeAnalysis.FxCopAnalyzers), but single package analyzers might have a common assembly and language specific assemblies.
 
+## Options
+
 ### -n, --name <name>
 
 Name override. If not specified, the name of the name of the first assembly with analyzers found.
 
-### -g, --generate <All|Checks|Documentation|Editorconfig|MSBuild|None|Rulesets|Sarif>
+### -s, --sarif
 
-Type of documentation to generate.
-
-#### Sarif
-
-The [SARIF (Static Analysis Results Interchange Format)](https://sarifweb.azurewebsites.net/) documentation of all rules.
+Generates the [SARIF (Static Analysis Results Interchange Format)](https://sarifweb.azurewebsites.net/) documentation of all rules to the `documentation` subdirectory of the output directory.
 
 See [Microsoft.CodeAnalysis.FxCopAnalyzers.sarif](https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.FxCopAnalyzers/Microsoft.CodeAnalysis.FxCopAnalyzers.sarif) for an example.
 
-#### Documentation
+### -md, --documentation
 
-The Markdown documentation of all rules.
+Generates the Markdown documentation of all rules to the `documentation` subdirectory of the output directory.
 
 See [Microsoft.CodeAnalysis.FxCopAnalyzers.md](https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.FxCopAnalyzers/Microsoft.CodeAnalysis.FxCopAnalyzers.md) for an example.
 
-#### Rulesets
+### -rs, --rulesets
 
-A set of [rulesets](https://docs.microsoft.com/visualstudio/code-quality/using-rule-sets-to-group-code-analysis-rules) using various combinations.
+Generates a set of [rulesets](https://docs.microsoft.com/visualstudio/code-quality/using-rule-sets-to-group-code-analysis-rules) using various combinations to the `rulesets` subdirectory of the output directory.
 
-##### All rules with default severity
+#### All rules with default severity
 
 All rules with default severity. Rules with `IsEnabledByDefault = false` are disabled.
 
-##### All rules Enabled with default severity
+#### All rules Enabled with default severity
 
 All rules are enabled with default severity. Rules with `IsEnabledByDefault = false` are force enabled with default severity.
 
-##### All rules disabled
+#### All rules disabled
 
 All rules are forced disabled.
 
-##### Rules in the *<category>* category with default severity
+#### Rules in the *<category>* category with default severity
 
 Rules in the *<category>* category with default severity. Rules with `IsEnabledByDefault = false` or from a different category are disabled.
 
-##### Rules in the *<category>* category Enabled with default severity
+#### Rules in the *<category>* category Enabled with default severity
 
 Rules in the *<category>* category are enabled with default severity. Rules in the *<category>* category are force enabled with default severity. Rules from a different category are disabled.
 
-##### Rules tagged *<tag>* with default severity
+#### Rules tagged *<tag>* with default severity
 
 Rules tagged *<tag>* with default severity. Rules with `IsEnabledByDefault = false` or from a different category are disabled.
 
-(see [--tag](#-t---tags-))
+(see [--tags](#-t---tags-))
 
-##### Rules tagged *<tag>* Enabled with default severity
+#### Rules tagged *<tag>* Enabled with default severity
 
 Rules tagged *<tag>* are enabled with default severity. Rules tagged *<tag>* are force enabled with default severity. Rules not tagged *<tag>* are disabled.
 
-(see [--tag](#-t---tags-))
+(see [--tags](#-t---tags-))
 
-#### Editorconfig
+### -ed, --editorconfig
 
-A set of [EditorConfig](https://docs.microsoft.com/visualstudio/ide/create-portable-custom-editor-options) using various combinations.
+Generates a set of [EditorConfig](https://docs.microsoft.com/visualstudio/ide/create-portable-custom-editor-options) using various combinations to subdirectories of the `editorconfig` subdirectory of the output directory.
 
-#### MSBuild
+#### All rules with default severity
 
-A [props](https://docs.microsoft.com/visualstudio/msbuild/msbuild-properties) file with [`WarningsNotAsErrors`](https://docs.microsoft.com/visualstudio/msbuild/common-msbuild-project-properties) declaring all diagnostics to not be treated as errors if treat warnings as errors is set.
+All rules with default severity. Rules with `IsEnabledByDefault = false` are disabled.
 
-#### Checks
+#### All rules Enabled with default severity
 
-A set of sanity checks on the diagnostics documentation.
+All rules are enabled with default severity. Rules with `IsEnabledByDefault = false` are force enabled with default severity.
 
-At the moment it's only `HelpLinkUri` checks.
+#### All rules disabled
 
-## -dd, --documentation-directory <documentation-directory>
+All rules are forced disabled.
 
-Directory where the **Documention** files will be created.
+#### Rules in the *<category>* category with default severity
 
-## -sd, --sarif-directory <sarif-directory>
+Rules in the *<category>* category with default severity. Rules with `IsEnabledByDefault = false` or from a different category are disabled.
 
-Directory where the **Sarif** files will be created.
+#### Rules in the *<category>* category Enabled with default severity
 
-## -rd, --rulesets-directory <rulesets-directory>
+Rules in the *<category>* category are enabled with default severity. Rules in the *<category>* category are force enabled with default severity. Rules from a different category are disabled.
 
-Directory where the **Rulesets** files will be created.
+#### Rules tagged *<tag>* with default severity
 
-## -ed, --editorconfig-directory <editorconfig-directory>
+Rules tagged *<tag>* with default severity. Rules with `IsEnabledByDefault = false` or from a different category are disabled.
 
-Root directory where the **Editorconfig** files will be created.
+(see [--tags](#-t---tags-))
 
-## -bd, --build-directory <build-directory>
+#### Rules tagged *<tag>* Enabled with default severity
 
-Directory where the **MSBuild** files will be created.
+Rules tagged *<tag>* are enabled with default severity. Rules tagged *<tag>* are force enabled with default severity. Rules not tagged *<tag>* are disabled.
 
-## -cd, --checks-directory <checks-directory>
+(see [--tags](#-t---tags-))
 
-Directory where the **Checks** files will be created.
+### -mb, --msbuild
 
-## -t, --tags <tags>
+Generates a [props](https://docs.microsoft.com/visualstudio/msbuild/msbuild-properties) file with [`WarningsNotAsErrors`](https://docs.microsoft.com/visualstudio/msbuild/common-msbuild-project-properties) declaring all diagnostics to not be treated as errors if treat warnings as errors is set to the `build` subdirectory of the output directory..
 
-The list of tags to generate [Rulesets](#rulesets)  and [Editorconfig](#editorconfig).
+### -t, --tags <tags>
+
+The list of tags to generate [--rulesets](#-rs---rulesets)  and [-ec---editorconfig](#editorconfig).

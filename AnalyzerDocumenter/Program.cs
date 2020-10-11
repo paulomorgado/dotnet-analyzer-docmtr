@@ -1,4 +1,8 @@
-﻿using System;
+﻿using AnalyzerDocumenter.Writers;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.Extensions.FileSystemGlobbing;
+using Microsoft.Extensions.FileSystemGlobbing.Abstractions;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.CommandLine;
@@ -6,89 +10,113 @@ using System.CommandLine.Invocation;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
-using AnalyzerDocumenter.Writers;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.Extensions.FileSystemGlobbing;
-using Microsoft.Extensions.FileSystemGlobbing.Abstractions;
 
 namespace AnalyzerDocumenter
 {
     static class Program
     {
+        private const string DocumentationOutputDirectory = "documentation";
+        private const string MSBuildOutputDirectory = "build";
+        private const string RulesetsOutputDirectory = "rulesets";
+        private const string EditorconfigOutputDirectory = "editorconfig";
+        private const string ChecksFileName = "Checks.md";
+        private const string EditorconfigFileName = ".editorconfig";
+        private const string SarifFileExtensions = ".sarif";
+        private const string MarkdownFileExtension = ".md";
+        private const string MSBuildPropsFileExtension = ".props";
+        private const string RuleSetFileExtension = ".ruleset";
+        private const string AllRulesFilePrefix = "AllRules";
+        private const string RulesFilePrefix = "Rules";
+
         static async Task<int> Main(string[] args)
         {
-            Func<DirectoryInfo> getCurrentDirectory = () => new DirectoryInfo(Directory.GetCurrentDirectory());
-
             var rootCommand = new RootCommand("Roslyn analyzers documenter")
             {
-                new Option<FileInfo[]>(
-                    aliases: new[] { "--assemblies", "-a" },
-                    description: "The assemblies with Roslyn analizers")
-                {
-                    IsRequired = true,
-                },
-                new Option<string?>(
+                new Argument<FileInfo[]>(
+                    name: "assemblies",
+                    description: "Input assemblies with Roslyn analizers. Accepts globbing patterns."),
+                new Option(
                     aliases: new[] { "--name", "-n" },
-                    description: "The root name of the output assets"),
-                new Option<Generators>(
-                    aliases: new[] { "--generate", "-g" },
-                    description: "The output types to generate"),
-                new Option<DirectoryInfo>(
-                    aliases: new[] { "--documentation-directory", "-dd" },
-                    description: "The analyzer documentation directory",
-                    getDefaultValue: getCurrentDirectory),
-                new Option<DirectoryInfo>(
-                    aliases: new[] { "--sarif-directory", "-sd" },
-                    description: "The analyzer SARIF directory",
-                    getDefaultValue: getCurrentDirectory),
-                new Option<DirectoryInfo>(
-                    aliases: new[] { "--rulesets-directory", "-rd" },
-                    description: "The analyzer rulesets directory",
-                    getDefaultValue: getCurrentDirectory),
-                new Option<DirectoryInfo>(
-                    aliases: new[] { "--editorconfig-directory", "-ed" },
-                    description: "The analyzer .editorconfig base directory",
-                    getDefaultValue: getCurrentDirectory),
-                new Option<DirectoryInfo>(
-                    aliases: new[] { "--build-directory", "-bd" },
-                    description: "The MSBuild artifacts directory",
-                    getDefaultValue: getCurrentDirectory),
-                new Option<DirectoryInfo>(
-                    aliases: new[] { "--checks-directory", "-cd" },
-                    description: "The checks directory",
-                    getDefaultValue: getCurrentDirectory),
-                new Option<string[]?>(
+                    description: "The root name of the output assets")
+                {
+                    Argument = new Argument<string?>(name: "name")
+                },
+                new Option(
+                    aliases: new[] { "--output-directory", "--output", "-o" },
+                    description: "The output directory. Defaults to the current directory.")
+                {
+                    Argument = new Argument<DirectoryInfo>(
+                        name: "output-directory",
+                        getDefaultValue: () => new DirectoryInfo(Directory.GetCurrentDirectory()))
+                },
+                new Option(
+                    aliases: new[] { "--generate-sarif", "--sarif", "-s" },
+                    description: $"Generates the analyzer SARIF documentation. The SARIF file will be generated to the '{DocumentationOutputDirectory}' subdirectory of the ouput directory.")
+                {
+                    Argument = new Argument<bool>(name: "generate-sarif")
+                },
+                new Option(
+                    aliases: new[] { "--generate-markdown", "--markdown", "-md" },
+                    description: $"Generates the analyzer markdown documentation. The SARIF file will be generated to the '{DocumentationOutputDirectory}' subdirectory of the ouput directory.")
+                {
+                    Argument = new Argument<bool>(name: "generate-markdown")
+                },
+                new Option<bool>(
+                    aliases: new[] { "--generate-rulesets", "--rulesets", "-rs" },
+                    description: $"Generates the analyzer rulesets files. The markdown file will be generated to the '{RulesetsOutputDirectory}' subdirectory of the ouput directory.")
+                {
+                    Argument = new Argument<bool>(name: "generate-rulesets")
+                },
+                new Option<bool>(
+                    aliases: new[] { "--generate-editorconfig", "--editorconfig", "-ec" },
+                    description: $"Generates the analyzer .editorconfig files. The '{EditorconfigFileName}' file will be generated to subdirectories of the '{EditorconfigOutputDirectory}' subdirectory of the ouput directory.")
+                {
+                    Argument = new Argument<bool>(name: "generate-editorconfig")
+                },
+                new Option(
+                    aliases: new[] { "--generate-msbuild", "--msbuild", "-mb" },
+                    description: $"Generates the analyzer MSBuild files. The files will be generated to the '{MSBuildOutputDirectory}' subdirectory of the ouput directory.")
+                {
+                    Argument = new Argument<bool>(name: "generate-msbuild")
+                },
+                new Option(
+                    aliases: new[] { "--generate-checks", "--checks", "-ck" },
+                    description: $"Generates the analyzer checks file. The '{ChecksFileName}' file will be generated to the output directory.")
+                {
+                    Argument = new Argument<bool>(name: "generate-checks")
+                },
+                new Option(
                     aliases: new[] { "--tags", "-t" },
-                    description: "The analyzer tags to generate rulesets and .editorconfig files"),
+                    description: "The analyzer tags to generate rulesets and .editorconfig files.")
+                {
+                    Argument = new Argument<string[]?>(name: "generate-markdown")
+                },
             };
 
-            rootCommand.Handler = CommandHandler.Create(typeof(Program)!.GetMethod(nameof(CommandHandlerAsync), BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static)!);
+            rootCommand.Handler = CommandHandler.Create<CommandArguments>(CommandHandlerAsync);
 
             return await rootCommand.InvokeAsync(args);
         }
 
-        static async Task<int> CommandHandlerAsync(
-            FileInfo[] assemblies,
-            string? name,
-            Generators generate,
-            DirectoryInfo documentationDirectory,
-            DirectoryInfo sarifDirectory,
-            DirectoryInfo rulesetsDirectory,
-            DirectoryInfo editorconfigDirectory,
-            DirectoryInfo buildDirectory,
-            DirectoryInfo checksDirectory,
-            string[]? tags)
+        static async Task<int> CommandHandlerAsync(CommandArguments arguments)
         {
-            if (generate == Generators.None)
+            if (!(
+                arguments.GenerateSarif
+                || arguments.GenerateMarkdown
+                || arguments.GenerateRulesets
+                || arguments.GenerateEditorconfig
+                || arguments.GenerateMSBuild
+                || arguments.GenerateChecks))
             {
                 return 0;
             }
 
+            var name = arguments.Name;
             var allRulesById = new SortedList<string, RuleDescriptor>();
             var fixableDiagnosticIds = new HashSet<string>();
             var categories = new HashSet<string>();
             var assemblyDescriptors = new SortedList<string, AssemblyDescriptor>();
-            foreach (var assemblyFilePath in EnumerateAssemblyFilePaths(assemblies))
+            foreach (var assemblyFilePath in EnumerateAssemblyFilePaths(arguments.Assemblies))
             {
                 var assemblyName = Path.GetFileNameWithoutExtension(assemblyFilePath);
 
@@ -157,31 +185,33 @@ namespace AnalyzerDocumenter
             var perAssemblyWriters = new List<WriterBase>();
             var perRuleWriters = new List<WriterBase>();
 
-            if (generate.HasFlag(Generators.Sarif))
+            if (arguments.GenerateSarif)
             {
-                perAssemblyWriters.Add(new SarifWriter(getFilePath(sarifDirectory, name + ".sarif")));
+                perAssemblyWriters.Add(new SarifWriter(getFilePath(getDirectory(arguments.OutputDirectory, DocumentationOutputDirectory), name + SarifFileExtensions)));
             }
 
-            if (generate.HasFlag(Generators.Checks))
+            if (arguments.GenerateChecks)
             {
-                perAssemblyWriters.Add(new ChecksWriter(getFilePath(checksDirectory, "Checks.md")));
+                perAssemblyWriters.Add(new ChecksWriter(getFilePath(arguments.OutputDirectory, ChecksFileName)));
             }
 
-            if (generate.HasFlag(Generators.Documentation))
+            if (arguments.GenerateMarkdown)
             {
-                perRuleWriters.Add(new DocumentationWriter(getFilePath(documentationDirectory, name + ".md"), name!, fixableDiagnosticIds));
+                perRuleWriters.Add(new DocumentationWriter(getFilePath(getDirectory(arguments.OutputDirectory, DocumentationOutputDirectory), name + MarkdownFileExtension), name!, fixableDiagnosticIds));
             }
 
-            if (generate.HasFlag(Generators.MSBuild))
+            if (arguments.GenerateMSBuild)
             {
-                perRuleWriters.Add(new PropsWriter(getFilePath(buildDirectory, name + ".props")));
+                perRuleWriters.Add(new PropsWriter(getFilePath(getDirectory(arguments.OutputDirectory, MSBuildOutputDirectory), name + MSBuildPropsFileExtension)));
             }
 
-            if (generate.HasFlag(Generators.Rulesets))
+            if (arguments.GenerateRulesets)
             {
+                var rulesetsOutputDirectory = getDirectory(arguments.OutputDirectory, RulesetsOutputDirectory);
+
                 perRuleWriters.Add(
                     new RulesetWriter(
-                        filePath: getFilePath(rulesetsDirectory, "AllRules" + nameof(RulesetKind.Default) + ".ruleset"),
+                        filePath: getFilePath(rulesetsOutputDirectory, AllRulesFilePrefix + nameof(RulesetKind.Default) + RuleSetFileExtension),
                         name: name!,
                         rulesetKind: RulesetKind.Default,
                         selector: Selector.All,
@@ -189,15 +219,15 @@ namespace AnalyzerDocumenter
 
                 perRuleWriters.Add(
                     new RulesetWriter(
-                        filePath: getFilePath(rulesetsDirectory, "AllRules" + nameof(RulesetKind.Enabled) + ".ruleset"),
+                        filePath: getFilePath(rulesetsOutputDirectory, AllRulesFilePrefix + nameof(RulesetKind.Enabled) + RuleSetFileExtension),
                         name: name!,
                         rulesetKind: RulesetKind.Enabled,
                         selector: Selector.All,
                         context: null));
-                
+
                 perRuleWriters.Add(
                     new RulesetWriter(
-                        filePath: getFilePath(rulesetsDirectory, "AllRules" + nameof(RulesetKind.Disabled) + ".ruleset"),
+                        filePath: getFilePath(rulesetsOutputDirectory, AllRulesFilePrefix + nameof(RulesetKind.Disabled) + RuleSetFileExtension),
                         name: name!,
                         rulesetKind: RulesetKind.Disabled,
                         selector: Selector.All,
@@ -207,36 +237,36 @@ namespace AnalyzerDocumenter
                 {
                     perRuleWriters.Add(
                         new RulesetWriter(
-                            filePath: getFilePath(rulesetsDirectory, category + "Rules" + nameof(RulesetKind.Default) + ".ruleset"),
+                            filePath: getFilePath(rulesetsOutputDirectory, category + RulesFilePrefix + nameof(RulesetKind.Default) + RuleSetFileExtension),
                             name: name!,
                             rulesetKind: RulesetKind.Default,
                             selector: Selector.Categories,
                             context: category));
-                    
+
                     perRuleWriters.Add(
                         new RulesetWriter(
-                            filePath: getFilePath(rulesetsDirectory, category + "Rules" + nameof(RulesetKind.Enabled) + ".ruleset"),
+                            filePath: getFilePath(rulesetsOutputDirectory, category + RulesFilePrefix + nameof(RulesetKind.Enabled) + RuleSetFileExtension),
                             name: name!,
                             rulesetKind: RulesetKind.Enabled,
                             selector: Selector.Categories,
                             context: category));
                 }
 
-                if (!(tags is null))
+                if ((arguments.Tags is not null) && (arguments.Tags.Length > 0))
                 {
-                    foreach (var tag in tags)
+                    foreach (var tag in arguments.Tags)
                     {
                         perRuleWriters.Add(
                             new RulesetWriter(
-                                filePath: getFilePath(rulesetsDirectory, tag + "Rules" + nameof(RulesetKind.Default) + ".ruleset"),
+                                filePath: getFilePath(rulesetsOutputDirectory, tag + RulesFilePrefix + nameof(RulesetKind.Default) + RuleSetFileExtension),
                                 name: name!,
                                 rulesetKind: RulesetKind.Default,
                                 selector: Selector.Tags,
                                 context: tag));
-                        
+
                         perRuleWriters.Add(
                             new RulesetWriter(
-                                filePath: getFilePath(rulesetsDirectory, tag + "Rules" + nameof(RulesetKind.Enabled) + ".ruleset"),
+                                filePath: getFilePath(rulesetsOutputDirectory, tag + RulesFilePrefix + nameof(RulesetKind.Enabled) + RuleSetFileExtension),
                                 name: name!,
                                 rulesetKind: RulesetKind.Enabled,
                                 selector: Selector.Tags,
@@ -245,27 +275,29 @@ namespace AnalyzerDocumenter
                 }
             }
 
-            if (generate.HasFlag(Generators.Editorconfig))
+            if (arguments.GenerateEditorconfig)
             {
+                var editorcondigOutputDirectory = getDirectory(arguments.OutputDirectory, EditorconfigOutputDirectory);
+
                 perRuleWriters.Add(
                     new EditorconfigWriter(
-                        filePath: getFilePath(getDirectory(editorconfigDirectory, "AllRules" + nameof(RulesetKind.Default)), ".editorconfig"),
+                        filePath: getFilePath(getDirectory(editorcondigOutputDirectory, AllRulesFilePrefix + nameof(RulesetKind.Default)), EditorconfigFileName),
                         name: name!,
                         rulesetKind: RulesetKind.Default,
                         selector: Selector.All,
                         context: null));
-                
+
                 perRuleWriters.Add(
                     new EditorconfigWriter(
-                        filePath: getFilePath(getDirectory(editorconfigDirectory, "AllRules" + nameof(RulesetKind.Enabled)), ".editorconfig"),
+                        filePath: getFilePath(getDirectory(editorcondigOutputDirectory, AllRulesFilePrefix + nameof(RulesetKind.Enabled)), EditorconfigFileName),
                         name: name!,
                         rulesetKind: RulesetKind.Enabled,
                         selector: Selector.All,
                         context: null));
-                
+
                 perRuleWriters.Add(
                     new EditorconfigWriter(
-                        filePath: getFilePath(getDirectory(editorconfigDirectory, "AllRules" + nameof(RulesetKind.Disabled)), ".editorconfig"),
+                        filePath: getFilePath(getDirectory(editorcondigOutputDirectory, AllRulesFilePrefix + nameof(RulesetKind.Disabled)), EditorconfigFileName),
                         name: name!,
                         rulesetKind: RulesetKind.Disabled,
                         selector: Selector.All,
@@ -275,36 +307,36 @@ namespace AnalyzerDocumenter
                 {
                     perRuleWriters.Add(
                         new EditorconfigWriter(
-                            filePath: getFilePath(getDirectory(editorconfigDirectory, category + "Rules" + nameof(RulesetKind.Default)), ".editorconfig"),
+                            filePath: getFilePath(getDirectory(editorcondigOutputDirectory, category + RulesFilePrefix + nameof(RulesetKind.Default)), EditorconfigFileName),
                             name: name!,
                             rulesetKind: RulesetKind.Default,
                             selector: Selector.Categories,
                             context: category));
-                    
+
                     perRuleWriters.Add(
                         new EditorconfigWriter(
-                            filePath: getFilePath(getDirectory(editorconfigDirectory, category + "Rules" + nameof(RulesetKind.Enabled)), ".editorconfig"),
+                            filePath: getFilePath(getDirectory(editorcondigOutputDirectory, category + RulesFilePrefix + nameof(RulesetKind.Enabled)), EditorconfigFileName),
                             name: name!,
                             rulesetKind: RulesetKind.Enabled,
                             selector: Selector.Categories,
                             context: category));
                 }
 
-                if (!(tags is null))
+                if ((arguments.Tags is not null) && (arguments.Tags.Length > 0))
                 {
-                    foreach (var tag in tags)
+                    foreach (var tag in arguments.Tags)
                     {
                         perRuleWriters.Add(
                             new EditorconfigWriter(
-                                filePath: getFilePath(getDirectory(editorconfigDirectory, tag + "Rules" + nameof(RulesetKind.Default)), ".editorconfig"),
+                                filePath: getFilePath(getDirectory(editorcondigOutputDirectory, tag + RulesFilePrefix + nameof(RulesetKind.Default)), EditorconfigFileName),
                                 name: name!,
                                 rulesetKind: RulesetKind.Default,
                                 selector: Selector.Tags,
                                 context: tag));
-                        
+
                         perRuleWriters.Add(
                             new EditorconfigWriter(
-                                filePath: getFilePath(getDirectory(editorconfigDirectory, tag + "Rules" + nameof(RulesetKind.Enabled)), ".editorconfig"),
+                                filePath: getFilePath(getDirectory(editorcondigOutputDirectory, tag + RulesFilePrefix + nameof(RulesetKind.Enabled)), EditorconfigFileName),
                                 name: name!,
                                 rulesetKind: RulesetKind.Enabled,
                                 selector: Selector.Tags,
