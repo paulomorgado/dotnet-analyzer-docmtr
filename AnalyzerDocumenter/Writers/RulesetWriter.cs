@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Globalization;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 
@@ -71,7 +72,7 @@ namespace AnalyzerDocumenter.Writers
 
         private async Task WriteRuleAsyncImpl(RuleDescriptor rule, RulesetKind rulesetKind)
         {
-            await this.XmlWriter.WriteCommentAsync(rule.Diagnostic.Title.ToString());
+            await this.XmlWriter.WriteCommentAsync(rule.Diagnostic.Title.ToString(CultureInfo.CurrentCulture));
             await this.XmlWriter.WriteStartElementAsync(null, "Rule", null);
             await this.XmlWriter.WriteAttributeStringAsync(null, "Id", null, rule.Diagnostic.Id);
             await this.XmlWriter.WriteAttributeStringAsync(null, "Action", null, GetResolvedSeverity(rulesetKind, rule.Diagnostic));

@@ -7,7 +7,7 @@ namespace AnalyzerDocumenter.Writers
 {
     internal sealed class DocumentationWriter : WriterBase
     {
-        private static readonly Regex lineBreaksRegex = new Regex("\r?\n", RegexOptions.Compiled);
+        private static readonly Regex lineBreaksRegex = new("\r?\n", RegexOptions.Compiled);
         private readonly HashSet<string> fixableDiagnosticIds;
         private readonly string name;
 

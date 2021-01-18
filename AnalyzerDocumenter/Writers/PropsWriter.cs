@@ -7,12 +7,9 @@ namespace AnalyzerDocumenter.Writers
     internal class PropsWriter : XmlWriterBase
     {
         private const string WarningsNotAsErrors = nameof(WarningsNotAsErrors);
-        private static readonly XmlWriterSettings? xmlWriterSettings = new XmlWriterSettings { Indent = true, Async = true };
-        private readonly StringBuilder builder = new StringBuilder();
+        private readonly StringBuilder builder = new();
 
-#pragma warning disable CS8618 // Non-nullable field is uninitialized. xmlWriter will be initialized after invoking WriteStartAsync.
         public PropsWriter(string filePath)
-#pragma warning restore CS8618 // Non-nullable field is uninitialized. xmlWriter will be initialized after invoking WriteStartAsync.
             : base(filePath, false)
         {
         }

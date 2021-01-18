@@ -1,10 +1,11 @@
 ﻿using System;
+using System.Globalization;
 using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace AnalyzerDocumenter.Writers
 {
-    internal sealed class ChecksWriter : WriterBase
+    internal sealed class ChecksWriter : WriterBase, IDisposable
     {
         private HttpClient httpClient;
 
@@ -13,6 +14,20 @@ namespace AnalyzerDocumenter.Writers
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. httpClient will be initialized after invoking WriteRuleAsync.
             : base(filePath)
         {
+        }
+
+        // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
+        ~ChecksWriter()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            this.Dispose(disposing: false);
+        }
+
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            this.Dispose(disposing: true);
+            GC.SuppressFinalize(this);
         }
 
         protected internal override async Task WriteStartAnalyzerAsync(AssemblyDescriptor assemblyDescriptor)
@@ -62,7 +77,7 @@ namespace AnalyzerDocumenter.Writers
                             error = $"Help link {uri} moved to {location}";
                             break;
                         default:
-                            error = $"Invalid response ({((int)(response.StatusCode)).ToString()} - {response.StatusCode}) for help link URI: {rule.Diagnostic.HelpLinkUri}";
+                            error = $"Invalid response ({((int)(response.StatusCode)).ToString(CultureInfo.InvariantCulture)} - {response.StatusCode}) for help link URI: {rule.Diagnostic.HelpLinkUri}";
                             break;
                     }
                 }
@@ -87,6 +102,21 @@ namespace AnalyzerDocumenter.Writers
         protected internal override async Task WriteEndAnalyzerAsync()
         {
             await this.FileWriter.WriteLineAsync();
+        }
+
+        private void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                // TODO: dispose managed state (managed objects)
+
+                this.httpClient?.Dispose();
+            }
+
+            // TODO: free unmanaged resources (unmanaged objects) and override finalizer
+            // TODO: set large fields to null
+
+            this.httpClient = null;
         }
     }
 }

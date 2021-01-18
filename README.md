@@ -5,7 +5,6 @@ This is a [dotnet tool](https://docs.microsoft.com/dotnet/core/tools/global-tool
 The implementation is based on the [custom tool](https://github.com/dotnet/roslyn-analyzers/tree/master/src/Tools/GenerateDocumentationAndConfigFiles) used by the [roslyn-analyzers](https://github.com/dotnet/roslyn-analyzers/) and can be used on any analyzer or group of analyzers.
 
 ```text
-> dotnet analyzer-docmtr --help
 AnalyzerDocumenter:
   Roslyn analyzers documenter
 
@@ -16,17 +15,18 @@ Arguments:
   <assemblies>    Input assemblies with Roslyn analizers. Accepts globbing patterns.
 
 Options:
-  -n, --name <generate-markdown>     The root name of the output assets
-  -o, --output <output-directory>    The output directory. Defaults to the current directory. [default: C:\Projects\GH\PM\analyzer-docmtr]
-  -s, --sarif                        Generates the analyzer SARIF documentation. The SARIF file will be generated to the documentation subdirectory of the ouput directory.
-  -md, --documentation               Generates the analyzer markdown documentation. The SARIF file will be generated to the documentation subdirectory of the ouput directory.
-  -rs, --rulesets                    Generates the analyzer rulesets files. The markdown file will be generated to the rulesets subdirectory of the ouput directory.
-  -ec, --editorconfig                Generates the analyzer .editorconfig files. The .editorconfig file will be generated to subdirectories of the editorconfig subdirectory of the ouput directory.
-  -mb, --msbuild                     Generates the analyzer MSBuild files. The files will be generated to the build subdirectory of the ouput directory.
-  -ck, --checks                      Generates the analyzer checks file. The Checks.md file will be generated to the output directory.
-  -t, --tags <generate-markdown>     The analyzer tags to generate rulesets and .editorconfig files.
-  --version                          Show version information
-  -?, -h, --help                     Show help and usage information
+  -n, --name <name>                                      The root name of the output assets
+  -o, --output, --output-directory <output-directory>    The output directory. Defaults to the current directory. [default: C:\temp]
+  -s, --generate-sarif, --sarif                          Generates the analyzer SARIF documentation. The SARIF file will be generated to the 'documentation' subdirectory of the ouput directory.
+  -md, --generate-markdown, --markdown                   Generates the analyzer markdown documentation. The SARIF file will be generated to the 'documentation' subdirectory of the ouput directory.
+  -rs, --generate-rulesets, --rulesets                   Generates the analyzer rulesets files. The markdown file will be generated to the 'rulesets' subdirectory of the ouput directory.
+  -ec, --editorconfig, --generate-editorconfig           Generates the analyzer .editorconfig files. The '.editorconfig' file will be generated to subdirectories of the 'editorconfig' subdirectory
+                                                         of the ouput directory.
+  -mb, --generate-msbuild, --msbuild                     Generates the analyzer MSBuild files. The files will be generated to the 'build' subdirectory of the ouput directory.
+  -ck, --checks, --generate-checks                       Generates the analyzer checks file. The 'Checks.md' file will be generated to the output directory.
+  -t, --tags <generate-markdown>                         The analyzer tags to generate rulesets and .editorconfig files.
+  --version                                              Show version information
+  -?, -h, --help                                         Show help and usage information
 ```
 
 ## Arguments

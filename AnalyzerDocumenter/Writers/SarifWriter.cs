@@ -10,7 +10,7 @@ namespace AnalyzerDocumenter.Writers
 {
     internal sealed class SarifWriter : JsonWriterBase
     {
-        private static readonly CultureInfo culture = new CultureInfo("en-us");
+        private static readonly CultureInfo culture = new("en-us");
 
         public SarifWriter(string filePath)
             : base(filePath)

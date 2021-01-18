@@ -282,7 +282,6 @@ namespace AnalyzerDocumenter
                 perRuleWriters.Add(
                     new EditorconfigWriter(
                         filePath: getFilePath(getDirectory(editorcondigOutputDirectory, AllRulesFilePrefix + nameof(RulesetKind.Default)), EditorconfigFileName),
-                        name: name!,
                         rulesetKind: RulesetKind.Default,
                         selector: Selector.All,
                         context: null));
@@ -290,7 +289,6 @@ namespace AnalyzerDocumenter
                 perRuleWriters.Add(
                     new EditorconfigWriter(
                         filePath: getFilePath(getDirectory(editorcondigOutputDirectory, AllRulesFilePrefix + nameof(RulesetKind.Enabled)), EditorconfigFileName),
-                        name: name!,
                         rulesetKind: RulesetKind.Enabled,
                         selector: Selector.All,
                         context: null));
@@ -298,7 +296,6 @@ namespace AnalyzerDocumenter
                 perRuleWriters.Add(
                     new EditorconfigWriter(
                         filePath: getFilePath(getDirectory(editorcondigOutputDirectory, AllRulesFilePrefix + nameof(RulesetKind.Disabled)), EditorconfigFileName),
-                        name: name!,
                         rulesetKind: RulesetKind.Disabled,
                         selector: Selector.All,
                         context: null));
@@ -308,7 +305,6 @@ namespace AnalyzerDocumenter
                     perRuleWriters.Add(
                         new EditorconfigWriter(
                             filePath: getFilePath(getDirectory(editorcondigOutputDirectory, category + RulesFilePrefix + nameof(RulesetKind.Default)), EditorconfigFileName),
-                            name: name!,
                             rulesetKind: RulesetKind.Default,
                             selector: Selector.Categories,
                             context: category));
@@ -316,7 +312,6 @@ namespace AnalyzerDocumenter
                     perRuleWriters.Add(
                         new EditorconfigWriter(
                             filePath: getFilePath(getDirectory(editorcondigOutputDirectory, category + RulesFilePrefix + nameof(RulesetKind.Enabled)), EditorconfigFileName),
-                            name: name!,
                             rulesetKind: RulesetKind.Enabled,
                             selector: Selector.Categories,
                             context: category));
@@ -329,7 +324,6 @@ namespace AnalyzerDocumenter
                         perRuleWriters.Add(
                             new EditorconfigWriter(
                                 filePath: getFilePath(getDirectory(editorcondigOutputDirectory, tag + RulesFilePrefix + nameof(RulesetKind.Default)), EditorconfigFileName),
-                                name: name!,
                                 rulesetKind: RulesetKind.Default,
                                 selector: Selector.Tags,
                                 context: tag));
@@ -337,7 +331,6 @@ namespace AnalyzerDocumenter
                         perRuleWriters.Add(
                             new EditorconfigWriter(
                                 filePath: getFilePath(getDirectory(editorcondigOutputDirectory, tag + RulesFilePrefix + nameof(RulesetKind.Enabled)), EditorconfigFileName),
-                                name: name!,
                                 rulesetKind: RulesetKind.Enabled,
                                 selector: Selector.Tags,
                                 context: tag));
@@ -456,7 +449,7 @@ namespace AnalyzerDocumenter
             {
                 var fp = filePattern.FullName;
 
-                var g = fp.IndexOf('*');
+                var g = fp.IndexOf('*', StringComparison.OrdinalIgnoreCase);
 
                 if (g < 0)
                 {

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -8,18 +9,14 @@ namespace AnalyzerDocumenter.Writers
     internal class EditorconfigWriter : WriterBase
     {
         private readonly RulesetKind rulesetKind;
-        private readonly string name;
         private readonly Selector selector;
         private readonly string? context;
         private List<RuleDescriptor>? notSelectedRules;
 
-#pragma warning disable CS8618 // Non-nullable field is uninitialized. xmlWriter will be initialized after invoking WriteStartAsync.
-        public EditorconfigWriter(string filePath, string name, RulesetKind rulesetKind, Selector selector, string? context)
-#pragma warning restore CS8618 // Non-nullable field is uninitialized. xmlWriter will be initialized after invoking WriteStartAsync.
+        public EditorconfigWriter(string filePath, RulesetKind rulesetKind, Selector selector, string? context)
             : base(filePath)
         {
             this.rulesetKind = rulesetKind;
-            this.name = name;
             this.selector = selector;
             this.context = context;
         }
@@ -88,8 +85,8 @@ namespace AnalyzerDocumenter.Writers
             {
                 return rulesetKind switch
                 {
-                    RulesetKind.Default => diagnosticDescriptor.IsEnabledByDefault ? diagnosticDescriptor.DefaultSeverity.ToString().ToLowerInvariant() : "none",
-                    RulesetKind.Enabled => diagnosticDescriptor.DefaultSeverity.ToString().ToLowerInvariant(),
+                    RulesetKind.Default => diagnosticDescriptor.IsEnabledByDefault ? diagnosticDescriptor.DefaultSeverity.ToString(CultureInfo.InvariantCulture).ToLowerInvariant() : "none",
+                    RulesetKind.Enabled => diagnosticDescriptor.DefaultSeverity.ToString(CultureInfo.InvariantCulture).ToLowerInvariant(),
                     _ => "none"
                 };
             }

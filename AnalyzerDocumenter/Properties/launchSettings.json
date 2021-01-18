@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "AnalyzerDocumenter": {
-      "commandName": "Project",
-      "commandLineArgs": "-s -md -rs -ec -mb -ck -n Microsoft.VisualStudio.Threading.Analyzers -o C:\\temp\\PracticesChecker\\Analyzers\\Microsoft.VisualStudio.Threading.Analyzers\\Microsoft.VisualStudio.Threading.Analyzers C:\\Users\\pamorgad\\.nuget\\packages\\microsoft.visualstudio.threading.analyzers\\16.7.56\\analyzers\\cs\\Microsoft.VisualStudio.Threading.Analyzers.* C:\\Users\\pamorgad\\.nuget\\packages\\microsoft.visualstudio.threading.analyzers\\16.7.56\\analyzers\\vb\\Microsoft.VisualStudio.Threading.Analyzers.*"
-    }
-  }
-}

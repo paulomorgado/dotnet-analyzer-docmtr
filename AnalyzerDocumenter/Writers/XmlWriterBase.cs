@@ -8,7 +8,7 @@ namespace AnalyzerDocumenter.Writers
 {
     internal abstract class XmlWriterBase : WriterBase
     {
-        private static readonly XmlWriterSettings? xmlWriterSettings = new XmlWriterSettings { Indent = true, Async = true };
+        private static readonly XmlWriterSettings? xmlWriterSettings = new() { Indent = true, Async = true };
         private readonly bool shouldWriteStartDocument;
 
 #pragma warning disable CS8618 // Non-nullable field is uninitialized. xmlWriter will be initialized after invoking WriteStartAsync.

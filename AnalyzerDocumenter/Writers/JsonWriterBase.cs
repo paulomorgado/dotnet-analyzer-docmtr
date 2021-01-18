@@ -10,7 +10,7 @@ namespace AnalyzerDocumenter.Writers
 {
     internal abstract class JsonWriterBase : WriterBase
     {
-        private static readonly JsonWriterOptions jsonWriterOptions = new JsonWriterOptions { Indented = true, Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
+        private static readonly JsonWriterOptions jsonWriterOptions = new() { Indented = true, Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
 #pragma warning disable CS8618 // Non-nullable field is uninitialized. jsonWriter will be initialized after invoking WriteStartAsync.
         protected JsonWriterBase(string filePath)
 #pragma warning restore CS8618 // Non-nullable field is uninitialized. jsonWriter will be initialized after invoking WriteStartAsync.
