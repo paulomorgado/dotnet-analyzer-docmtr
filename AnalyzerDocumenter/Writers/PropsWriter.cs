@@ -1,13 +1,13 @@
 ﻿using System.Text;
 using System.Threading.Tasks;
-using System.Xml;
 
 namespace AnalyzerDocumenter.Writers
 {
     internal class PropsWriter : XmlWriterBase
     {
+        private const string CodeAnalysisRuleIds = nameof(CodeAnalysisRuleIds);
         private const string WarningsNotAsErrors = nameof(WarningsNotAsErrors);
-        private readonly StringBuilder builder = new();
+        private bool isFirst;
 
         public PropsWriter(string filePath)
             : base(filePath, false)
@@ -26,25 +26,36 @@ namespace AnalyzerDocumenter.Writers
 ");
 
             await this.XmlWriter.WriteStartElementAsync(null, "PropertyGroup", null);
-            await this.XmlWriter.WriteAttributeStringAsync(null, "Condition", null, "'$(CodeAnalysisTreatWarningsAsErrors)' == 'false'");
+            await this.XmlWriter.WriteStartElementAsync(null, "CodeAnalysisRuleIds", null);
 
-            this.builder.Append("$(" + WarningsNotAsErrors + ")");
+            this.isFirst = true;
         }
 
-        protected internal override Task WriteRuleAsync(RuleDescriptor rule)
+        protected internal override async Task WriteRuleAsync(RuleDescriptor rule)
         {
-            this.builder
-                .Append(';')
-                .Append(rule.Diagnostic.Id);
+            if (this.isFirst)
+            {
+                this.isFirst = false;
+            }
+            else
+            {
+                await this.XmlWriter.WriteStringAsync(";");
+            }
 
-            return Task.CompletedTask;
+            await this.XmlWriter.WriteStringAsync(rule.Diagnostic.Id);
         }
 
         protected internal sealed override async Task WriteEndAsync()
         {
 
-            await this.XmlWriter.WriteElementStringAsync(null, WarningsNotAsErrors, null, this.builder.ToString());
+            //await this.XmlWriter.WriteElementStringAsync(null, CodeAnalysisRuleIds, null, this.builder.ToString(0, this.builder.Length - 1));
             await this.XmlWriter.WriteEndElementAsync();
+
+            await this.XmlWriter.WriteStartElementAsync(null, "WarningsNotAsErrors", null);
+            await this.XmlWriter.WriteAttributeStringAsync(null, "Condition", null, "'$(CodeAnalysisTreatWarningsAsErrors)' == 'false'");
+            await this.XmlWriter.WriteStringAsync("$(WarningsNotAsErrors);$(CodeAnalysisRuleIds)");
+            await this.XmlWriter.WriteEndElementAsync();
+
             await this.XmlWriter.WriteEndElementAsync();
 
             await base.WriteEndAsync();

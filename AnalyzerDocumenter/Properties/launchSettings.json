@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "AnalyzerDocumenter": {
+      "commandName": "Project",
+      "commandLineArgs": "-a -n Microsoft.CodeAnalysis.NetAnalyzers -t Dataflow PortedFromFxCop -o C:\\temp\\PracticesChecker\\Analyzers\\Microsoft.CodeAnalysis.NetAnalyzers C:\\Users\\pamorgad\\.nuget\\packages\\microsoft.codeanalysis.netanalyzers\\5.0.3\\analyzers\\**\\*.dll"
+    }
+  }
+}

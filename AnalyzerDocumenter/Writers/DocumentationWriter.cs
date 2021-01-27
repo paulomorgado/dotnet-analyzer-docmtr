@@ -48,9 +48,21 @@ namespace AnalyzerDocumenter.Writers
             }
 
             await this.FileWriter.WriteAsync(": ");
-            await this.FileWriter.WriteAsync(rule.Diagnostic.Title.ToString());
-
+            await this.FileWriter.WriteAsync(rule.Diagnostic.Title.ToString(CultureInfo.InvariantCulture));
             await this.FileWriter.WriteLineAsync();
+            await this.FileWriter.WriteLineAsync();
+
+            var description = rule.Diagnostic.Description.ToString(CultureInfo.InvariantCulture);
+            if (string.IsNullOrWhiteSpace(description))
+            {
+                description = rule.Diagnostic.MessageFormat.ToString(CultureInfo.InvariantCulture);
+            }
+
+            // Replace line breaks with HTML breaks so that new
+            // lines don't break the markdown table formatting.
+            description = lineBreaksRegex.Replace(description, "<br>");
+
+            await this.FileWriter.WriteLineAsync(description);
             await this.FileWriter.WriteLineAsync();
 
             await this.FileWriter.WriteLineAsync("|Item|Value|");
@@ -67,22 +79,6 @@ namespace AnalyzerDocumenter.Writers
             await this.FileWriter.WriteAsync("|CodeFix|");
             await this.FileWriter.WriteAsync(this.fixableDiagnosticIds.Contains(rule.Diagnostic.Id).ToString(CultureInfo.InvariantCulture));
             await this.FileWriter.WriteLineAsync("|");
-            await this.FileWriter.WriteLineAsync();
-
-            await this.FileWriter.WriteLineAsync("### Rule description");
-            await this.FileWriter.WriteLineAsync();
-
-            var description = rule.Diagnostic.Description.ToString(CultureInfo.InvariantCulture);
-            if (string.IsNullOrWhiteSpace(description))
-            {
-                description = rule.Diagnostic.MessageFormat.ToString(CultureInfo.InvariantCulture);
-            }
-
-            // Replace line breaks with HTML breaks so that new
-            // lines don't break the markdown table formatting.
-            description = lineBreaksRegex.Replace(description, "<br>");
-
-            await this.FileWriter.WriteLineAsync(description);
             await this.FileWriter.WriteLineAsync();
         }
     }

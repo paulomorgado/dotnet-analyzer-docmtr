@@ -74,6 +74,11 @@ namespace AnalyzerDocumenter.Writers
             }
 
             var fullDescription = rule.Diagnostic.Description.ToString(culture);
+            if (string.IsNullOrEmpty(fullDescription))
+            {
+                fullDescription = rule.Diagnostic.MessageFormat.ToString(culture);
+            }
+
             if (!string.IsNullOrEmpty(fullDescription))
             {
                 this.JsonWriter.WriteStartObject("fullDescription");

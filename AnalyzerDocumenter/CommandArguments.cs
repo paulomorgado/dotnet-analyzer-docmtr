@@ -9,10 +9,12 @@ namespace AnalyzerDocumenter
         DirectoryInfo OutputDirectory,
         string? Name,
         string[]? Tags,
+        bool GenerateAll,
         bool GenerateSarif,
         bool GenerateMarkdown,
         bool GenerateRulesets,
-        bool GenerateEditorconfig,
+        bool GenerateEditorConfig,
+        bool GenerateGlobalConfig,
         bool GenerateMSBuild,
         bool GenerateChecks
     );

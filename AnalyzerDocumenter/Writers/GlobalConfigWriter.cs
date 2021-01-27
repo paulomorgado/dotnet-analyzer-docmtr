@@ -2,9 +2,9 @@
 
 namespace AnalyzerDocumenter.Writers
 {
-    internal sealed class EditorConfigWriter : ConfigWriterBase
+    internal sealed class GlobalConfigWriter : ConfigWriterBase
     {
-        public EditorConfigWriter(string filePath, RulesetKind rulesetKind, Selector selector, string? context)
+        public GlobalConfigWriter(string filePath, RulesetKind rulesetKind, Selector selector, string? context)
             : base(filePath, rulesetKind, selector, context)
         {
         }
@@ -16,8 +16,8 @@ namespace AnalyzerDocumenter.Writers
 
         protected sealed override async Task WriteSectionAsync()
         {
-            await this.FileWriter.WriteLineAsync("# Code files");
-            await this.FileWriter.WriteLineAsync("[*.{cs,vb}]");
+            await this.FileWriter.WriteLineAsync("is_global = true");
+            await this.FileWriter.WriteLineAsync("global_level = -1");
         }
     }
 }
